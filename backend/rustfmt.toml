@@ -1,0 +1,32 @@
+# rustfmt.toml
+
+# Set the maximum line width
+max_width = 120
+
+# Set indentation to use spaces
+hard_tabs = false
+tab_spaces = 4
+
+# Set whether to add spaces around operators
+space_before_colon = true
+space_after_colon = true
+space_before_semicolon = true
+
+# Set brace style for formatting
+brace_style = "PreferSameLine"
+
+# Set formatting style for long items
+fn_single_line = true
+struct_single_line = true
+
+# Set formatting style for enums
+enum_variants = "Grouped"
+
+# Set whether to reorder imports
+reorder_imports = true
+
+# Set formatting style for multiline strings
+multiline_style = "Vertical"
+
+# Set formatting style for comments
+comment_style = "Block"
