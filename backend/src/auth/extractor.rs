@@ -15,16 +15,21 @@ pub struct Auth {
 impl FromRequestParts<AppState> for Auth {
     type Rejection = (StatusCode, Json<ApiResponse<Option<()>>>);
 
-    async fn from_request_parts(parts: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
         let header = parts
             .headers
             .get("Authorization")
             .ok_or_else(|| Error::UnAuthorized("Auth header not found".to_string()).into_json())?;
-        let token = header
-            .to_str()
-            .map_err(|_| Error::UnAuthorized("Cannot extract auth header".to_string()).into_json())?;
+        let token = header.to_str().map_err(|_| {
+            Error::UnAuthorized("Cannot extract auth header".to_string()).into_json()
+        })?;
         if token.len() < 7 {
-            return Err(Error::UnAuthorized("Invalid authorization bearer token".to_string()).into_json());
+            return Err(
+                Error::UnAuthorized("Invalid authorization bearer token".to_string()).into_json(),
+            );
         }
 
         let claim = state

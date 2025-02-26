@@ -1,13 +1,12 @@
--- Add up migration script here
-create table "user"
+CREATE TABLE "user"
 (
-    id         bigserial,
-    username   varchar(255) not null unique,
-    email      varchar(255) not null unique,
-    password   varchar(255) not null,
-    name       varchar(255) not null,
-    photo_url  varchar(255) null,
-    deleted_at timestamptz  null,
-    created_at timestamptz  not null,
-    updated_at timestamptz  not null
-);
+    id         BIGSERIAL PRIMARY KEY,
+    username   VARCHAR(255) NOT NULL UNIQUE,
+    email      VARCHAR(255) NOT NULL UNIQUE,
+    password   VARCHAR(255) NOT NULL,
+    name       VARCHAR(255) NOT NULL,
+    photo_url  VARCHAR(255) NULL,
+    deleted_at TIMESTAMPTZ  NULL,
+    created_at TIMESTAMPTZ  NOT NULL,
+    updated_at TIMESTAMPTZ  NOT NULL
+);  

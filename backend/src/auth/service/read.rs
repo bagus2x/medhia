@@ -1,13 +1,12 @@
 use crate::auth::model::Claim;
 use crate::common::config::Config;
 use crate::common::model::Error;
-use axum::async_trait;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation};
+use std::future::Future;
 use std::sync::Arc;
 
-#[async_trait]
 pub trait AuthReadService {
-    async fn verify_token(&self, token: &str) -> Result<Claim, Error>;
+    fn verify_token(&self, token: &str) -> impl Future<Output = Result<Claim, Error>> + Send;
 }
 
 #[derive(Clone)]
@@ -21,7 +20,6 @@ impl AuthReadServiceImpl {
     }
 }
 
-#[async_trait]
 impl AuthReadService for AuthReadServiceImpl {
     async fn verify_token(&self, token: &str) -> Result<Claim, Error> {
         let data = jsonwebtoken::decode::<Claim>(

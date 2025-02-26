@@ -1,10 +1,10 @@
 [package]
-name = "social-media"
+name = "medhia"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.7.9"
+axum = { version = "0.7.9", features = ["ws", "macros"] }
 bcrypt = "0.16.0"
 chrono = {version = "0.4.38", features = ["serde", "default"]}
 sqlx = { version = "0.8.2", features = ["runtime-tokio", "chrono", "postgres"] }
@@ -17,3 +17,4 @@ jsonwebtoken = "9.3.0"
 validator = { version = "0.19.0", features = ["derive"] }
 serde_json = "1.0.133"
 tower = "0.5.1"
+futures-util = "0.3.31"

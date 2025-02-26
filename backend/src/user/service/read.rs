@@ -1,14 +1,16 @@
 use crate::common::model::{Error, PageRequest, PageResponse};
 use crate::user::model::UserResponse;
 use crate::user::repo::UserReadRepo;
-use axum::async_trait;
+use std::future::Future;
 use std::sync::Arc;
 
-#[async_trait]
-pub trait UserReadService {
-    async fn find_by_id(&self, user_id: i64) -> Result<UserResponse, Error>;
+pub trait UserReadService: Send + Sync {
+    fn find_by_id(&self, user_id: i64) -> impl Future<Output = Result<UserResponse, Error>> + Send;
 
-    async fn find_all(&self, req: PageRequest) -> Result<PageResponse<UserResponse>, Error>;
+    fn find_all(
+        &self,
+        req: PageRequest,
+    ) -> impl Future<Output = Result<PageResponse<UserResponse>, Error>> + Send;
 }
 
 pub struct UserReadServiceImpl<R>
@@ -27,7 +29,6 @@ where
     }
 }
 
-#[async_trait]
 impl<R> UserReadService for UserReadServiceImpl<R>
 where
     R: UserReadRepo + Send + Sync + 'static,

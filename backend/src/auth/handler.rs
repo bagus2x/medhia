@@ -7,7 +7,6 @@ use axum::routing::post;
 use axum::{Json, Router};
 use std::sync::Arc;
 
-#[derive(Clone)]
 pub struct AuthHandler<W>
 where
     W: AuthWriteService + Send + Sync + 'static,

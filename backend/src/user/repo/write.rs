@@ -1,31 +1,36 @@
 use crate::common::model::Error;
 use crate::user::model::{CreateUserRequest, UpdateUserRequest, User};
-use axum::async_trait;
 use chrono::{DateTime, Local, Utc};
 use sqlx::{Pool, Postgres};
+use std::future::Future;
 use std::sync::Arc;
 
-#[async_trait]
-pub trait UserWriteRepo {
-    async fn create(&self, request: CreateUserRequest) -> Result<User, Error>;
+pub trait UserWriteRepo: Send + Sync {
+    fn create(
+        &self,
+        request: CreateUserRequest,
+    ) -> impl Future<Output = Result<User, Error>> + Send;
 
-    async fn update(&self, user_id: i64, request: UpdateUserRequest) -> Result<User, Error>;
+    fn update(
+        &self,
+        user_id: i64,
+        request: UpdateUserRequest,
+    ) -> impl Future<Output = Result<User, Error>> + Send;
 
-    async fn delete(&self, user_id: i64) -> Result<User, Error>;
+    fn delete(&self, user_id: i64) -> impl Future<Output = Result<User, Error>> + Send;
 }
 
-pub struct PostgresUserWriteRepo {
+pub struct UserWriteRepoPg {
     pool: Arc<Pool<Postgres>>,
 }
 
-impl PostgresUserWriteRepo {
+impl UserWriteRepoPg {
     pub fn new(pool: Arc<Pool<Postgres>>) -> Self {
         Self { pool }
     }
 }
 
-#[async_trait]
-impl UserWriteRepo for PostgresUserWriteRepo {
+impl UserWriteRepo for UserWriteRepoPg {
     async fn create(&self, request: CreateUserRequest) -> Result<User, Error> {
         let query = r#"
             INSERT INTO "user" (
@@ -38,7 +43,7 @@ impl UserWriteRepo for PostgresUserWriteRepo {
         "#;
 
         sqlx::query_as::<_, User>(query)
-            .bind(&request.username)
+            .bind(request.username)
             .bind(&request.email)
             .bind(&request.password)
             .bind(&request.name)

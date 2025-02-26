@@ -4,17 +4,22 @@ use crate::common::model::Error;
 use crate::user::model::CreateUserRequest;
 use crate::user::repo::UserReadRepo;
 use crate::user::repo::UserWriteRepo;
-use axum::async_trait;
 use jsonwebtoken::Algorithm;
+use std::future::Future;
 use std::ops::Add;
 use std::sync::Arc;
 use validator::Validate;
 
-#[async_trait]
 pub trait AuthWriteService {
-    async fn sign_up(&self, req: SignUpRequest) -> Result<AuthResponse, Error>;
+    fn sign_up(
+        &self,
+        req: SignUpRequest,
+    ) -> impl Future<Output = Result<AuthResponse, Error>> + Send;
 
-    async fn sign_in(&self, req: SignInRequest) -> Result<AuthResponse, Error>;
+    fn sign_in(
+        &self,
+        req: SignInRequest,
+    ) -> impl Future<Output = Result<AuthResponse, Error>> + Send;
 }
 
 pub struct AuthWriteServiceImpl<W, R>
@@ -40,7 +45,14 @@ where
         }
     }
 
-    fn create_token(&self, key: &[u8], user_id: i64, username: &str, exp: i64, iat: i64) -> Result<String, Error> {
+    fn create_token(
+        &self,
+        key: &[u8],
+        user_id: i64,
+        username: &str,
+        exp: i64,
+        iat: i64,
+    ) -> Result<String, Error> {
         let claims = serde_json::json!(Claim {
             sub: user_id.to_string(),
             username: String::from(username),
@@ -57,24 +69,29 @@ where
     }
 }
 
-#[async_trait]
 impl<W, R> AuthWriteService for AuthWriteServiceImpl<W, R>
 where
     W: UserWriteRepo + Send + Sync,
     R: UserReadRepo + Send + Sync,
 {
     async fn sign_up(&self, req: SignUpRequest) -> Result<AuthResponse, Error> {
-        req.validate().map_err(|errors| Error::BadRequest(errors.to_string()))?;
+        req.validate()
+            .map_err(|errors| Error::BadRequest(errors.to_string()))?;
 
         if self.user_read_repo.exists_by_email(&req.email).await? {
             return Err(Error::Conflict("Email already exists".to_string()));
         }
 
-        if self.user_read_repo.exists_by_username(&req.username).await? {
+        if self
+            .user_read_repo
+            .exists_by_username(&req.username)
+            .await?
+        {
             return Err(Error::Conflict("Username already exists".to_string()));
         }
 
-        let password = bcrypt::hash(&req.password, 12).map_err(|e| Error::InternalServerError(e.to_string()))?;
+        let password = bcrypt::hash(&req.password, 12)
+            .map_err(|e| Error::InternalServerError(e.to_string()))?;
 
         let req = CreateUserRequest {
             username: req.username,
@@ -90,14 +107,18 @@ where
             self.config.access_token_key_secret.as_ref(),
             user.id,
             &user.username,
-            chrono::Utc::now().add(chrono::Duration::minutes(10)).timestamp(),
+            chrono::Utc::now()
+                .add(chrono::Duration::minutes(10))
+                .timestamp(),
             chrono::Utc::now().timestamp(),
         )?;
         let refresh_token = self.create_token(
             self.config.refresh_token_key_secret.as_ref(),
             user.id,
             &user.username,
-            chrono::Utc::now().add(chrono::Duration::days(7)).timestamp(),
+            chrono::Utc::now()
+                .add(chrono::Duration::days(7))
+                .timestamp(),
             chrono::Utc::now().timestamp(),
         )?;
 
@@ -115,8 +136,8 @@ where
             .await?
             .ok_or_else(|| Error::NotFound("User not found".to_string()))?;
 
-        let does_match =
-            bcrypt::verify(&req.password, &user.password).map_err(|e| Error::InternalServerError(e.to_string()))?;
+        let does_match = bcrypt::verify(&req.password, &user.password)
+            .map_err(|e| Error::InternalServerError(e.to_string()))?;
         if !does_match {
             return Err(Error::BadRequest("Password does not match".to_string()));
         }
@@ -125,14 +146,18 @@ where
             self.config.access_token_key_secret.as_ref(),
             user.id,
             &user.username,
-            chrono::Utc::now().add(chrono::Duration::minutes(10)).timestamp(),
+            chrono::Utc::now()
+                .add(chrono::Duration::minutes(10))
+                .timestamp(),
             chrono::Utc::now().timestamp(),
         )?;
         let refresh_token = self.create_token(
             self.config.refresh_token_key_secret.as_ref(),
             user.id,
             &user.username,
-            chrono::Utc::now().add(chrono::Duration::days(7)).timestamp(),
+            chrono::Utc::now()
+                .add(chrono::Duration::days(7))
+                .timestamp(),
             chrono::Utc::now().timestamp(),
         )?;
 

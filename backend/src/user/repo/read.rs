@@ -1,34 +1,41 @@
 use crate::common::model::{Error, PageRequest, PageResponse};
 use crate::user::model::User;
-use axum::async_trait;
 use sqlx::{Pool, Postgres};
+use std::future::Future;
 use std::sync::Arc;
 
-#[async_trait]
-pub trait UserReadRepo {
-    async fn find_by_id(&self, user_id: i64) -> Result<Option<User>, Error>;
+pub trait UserReadRepo: Send + Sync {
+    fn find_by_id(&self, user_id: i64) -> impl Future<Output = Result<Option<User>, Error>> + Send;
 
-    async fn find_all(&self, req: PageRequest) -> Result<PageResponse<User>, Error>;
+    fn find_all(
+        &self,
+        req: PageRequest,
+    ) -> impl Future<Output = Result<PageResponse<User>, Error>> + Send;
 
-    async fn find_by_username_or_email(&self, username_or_email: &str) -> Result<Option<User>, Error>;
+    fn find_by_username_or_email(
+        &self,
+        username_or_email: &str,
+    ) -> impl Future<Output = Result<Option<User>, Error>> + Send;
 
-    async fn exists_by_username(&self, username: &str) -> Result<bool, Error>;
+    fn exists_by_username(
+        &self,
+        username: &str,
+    ) -> impl Future<Output = Result<bool, Error>> + Send;
 
-    async fn exists_by_email(&self, email: &str) -> Result<bool, Error>;
+    fn exists_by_email(&self, email: &str) -> impl Future<Output = Result<bool, Error>> + Send;
 }
 
-pub struct PostgresUserReadRepo {
+pub struct UserReadRepoPg {
     pool: Arc<Pool<Postgres>>,
 }
 
-impl PostgresUserReadRepo {
+impl UserReadRepoPg {
     pub fn new(pool: Arc<Pool<Postgres>>) -> Self {
         Self { pool }
     }
 }
 
-#[async_trait]
-impl UserReadRepo for PostgresUserReadRepo {
+impl UserReadRepo for UserReadRepoPg {
     async fn find_by_id(&self, user_id: i64) -> Result<Option<User>, Error> {
         let query = r#"
             SELECT 
@@ -77,7 +84,10 @@ impl UserReadRepo for PostgresUserReadRepo {
         Ok(page)
     }
 
-    async fn find_by_username_or_email(&self, username_or_email: &str) -> Result<Option<User>, Error> {
+    async fn find_by_username_or_email(
+        &self,
+        username_or_email: &str,
+    ) -> Result<Option<User>, Error> {
         let query = r#"
             SELECT 
                 id, username, email, password, name, photo_url, deleted_at, created_at,  updated_at

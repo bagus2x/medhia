@@ -8,7 +8,11 @@ pub trait IntoApiResponse<T>
 where
     T: Serialize,
 {
-    fn into_json_with_code(self, code: u16, message: String) -> (StatusCode, Json<ApiResponse<Option<T>>>);
+    fn into_json_with_code(
+        self,
+        code: u16,
+        message: String,
+    ) -> (StatusCode, Json<ApiResponse<Option<T>>>);
 
     fn into_json(self) -> (StatusCode, Json<ApiResponse<Option<T>>>);
 }
@@ -17,7 +21,11 @@ impl<T> IntoApiResponse<T> for Result<T, Error>
 where
     T: Serialize,
 {
-    fn into_json_with_code(self, code: u16, message: String) -> (StatusCode, Json<ApiResponse<Option<T>>>) {
+    fn into_json_with_code(
+        self,
+        code: u16,
+        message: String,
+    ) -> (StatusCode, Json<ApiResponse<Option<T>>>) {
         let result = match self {
             Ok(data) => extract_success(code, data, message),
             Err(error) => extract_error(error),
@@ -35,7 +43,11 @@ impl<T> IntoApiResponse<T> for Error
 where
     T: Serialize,
 {
-    fn into_json_with_code(self, _code: u16, _message: String) -> (StatusCode, Json<ApiResponse<Option<T>>>) {
+    fn into_json_with_code(
+        self,
+        _code: u16,
+        _message: String,
+    ) -> (StatusCode, Json<ApiResponse<Option<T>>>) {
         extract_error::<T>(self)
     }
 
@@ -44,7 +56,11 @@ where
     }
 }
 
-fn extract_success<T>(status: u16, data: T, message: String) -> (StatusCode, Json<ApiResponse<Option<T>>>)
+fn extract_success<T>(
+    status: u16,
+    data: T,
+    message: String,
+) -> (StatusCode, Json<ApiResponse<Option<T>>>)
 where
     T: Serialize,
 {

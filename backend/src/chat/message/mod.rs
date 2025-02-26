@@ -1,4 +1,4 @@
 pub mod handler;
 pub mod model;
-pub mod repo;
-pub mod service;
+mod repo;
+mod service;

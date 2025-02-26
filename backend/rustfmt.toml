@@ -1,7 +1,7 @@
 # rustfmt.toml
 
 # Set the maximum line width
-max_width = 120
+max_width = 100
 
 # Set indentation to use spaces
 hard_tabs = false

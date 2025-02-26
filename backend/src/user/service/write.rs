@@ -2,14 +2,17 @@ use crate::common::model::Error;
 use crate::user::model::{UpdateUserRequest, UserResponse};
 use crate::user::repo::UserReadRepo;
 use crate::user::repo::UserWriteRepo;
-use axum::async_trait;
+use std::future::Future;
 use std::sync::Arc;
 
-#[async_trait]
 pub trait UserWriteService: Send + Sync {
-    async fn update(&self, user_id: i64, request: UpdateUserRequest) -> Result<UserResponse, Error>;
+    fn update(
+        &self,
+        user_id: i64,
+        request: UpdateUserRequest,
+    ) -> impl Future<Output = Result<UserResponse, Error>> + Send;
 
-    async fn delete(&self, user_id: i64) -> Result<UserResponse, Error>;
+    fn delete(&self, user_id: i64) -> impl Future<Output = Result<UserResponse, Error>> + Send;
 }
 
 pub struct UserWriteServiceImpl<W, R>
@@ -30,7 +33,6 @@ impl<W: UserWriteRepo + Send + Sync, R: UserReadRepo + Send + Sync> UserWriteSer
     }
 }
 
-#[async_trait]
 impl<W, R> UserWriteService for UserWriteServiceImpl<W, R>
 where
     W: UserWriteRepo + Send + Sync,
@@ -46,7 +48,8 @@ where
         let password = req
             .password
             .map(|password| {
-                bcrypt::hash(password, bcrypt::DEFAULT_COST).map_err(|e| Error::InternalServerError(e.to_string()))
+                bcrypt::hash(password, bcrypt::DEFAULT_COST)
+                    .map_err(|e| Error::InternalServerError(e.to_string()))
             })
             .unwrap_or(Ok(user.password))?;
 
@@ -73,7 +76,10 @@ where
             email: req.email.or(Some(user.email)),
         };
 
-        let updated_user = self.user_write_repo.update(user_id, updated_request).await?;
+        let updated_user = self
+            .user_write_repo
+            .update(user_id, updated_request)
+            .await?;
 
         Ok(UserResponse::from(updated_user))
     }

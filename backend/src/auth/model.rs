@@ -20,17 +20,33 @@ pub struct Claim {
 pub struct SignUpRequest {
     #[validate(
         email(message = "Invalid email format. Please provide a valid email address."),
-        length(min = 1, max = 64, message = "Email length must be between 1 and 64 characters.")
+        length(
+            min = 1,
+            max = 64,
+            message = "Email length must be between 1 and 64 characters."
+        )
     )]
     pub email: String,
 
-    #[validate(length(min = 1, max = 10, message = "Username length must be between 1 and 10 characters."))]
+    #[validate(length(
+        min = 1,
+        max = 10,
+        message = "Username length must be between 1 and 10 characters."
+    ))]
     pub username: String,
 
-    #[validate(length(min = 1, max = 64, message = "Name length must be between 1 and 10 characters."))]
+    #[validate(length(
+        min = 1,
+        max = 64,
+        message = "Name length must be between 1 and 10 characters."
+    ))]
     pub name: String,
 
-    #[validate(length(min = 6, max = 16, message = "Password length must be between 6 and 16 characters."))]
+    #[validate(length(
+        min = 6,
+        max = 16,
+        message = "Password length must be between 6 and 16 characters."
+    ))]
     pub password: String,
 }
 

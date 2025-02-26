@@ -1,6 +1,7 @@
+use std::fmt::{Display, Formatter};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum Error {
     BadRequest(String),
     UnAuthorized(String),
@@ -8,6 +9,12 @@ pub enum Error {
     NotFound(String),
     Conflict(String),
     InternalServerError(String),
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{:?}", self))
+    }
 }
 
 #[derive(Serialize, Deserialize)]

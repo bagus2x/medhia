@@ -42,7 +42,10 @@ where
     }
 
     async fn update(&self, user_id: i64, req: UpdateUserRequest) -> impl IntoResponse {
-        self.user_write_service.update(user_id, req).await.into_json()
+        self.user_write_service
+            .update(user_id, req)
+            .await
+            .into_json()
     }
 
     async fn delete(&self, user_id: i64) -> impl IntoResponse {
@@ -76,7 +79,7 @@ where
                 "/api/user",
                 patch({
                     let handler = Arc::clone(&handler);
-                     |auth: Auth, Json(req): Json<UpdateUserRequest>| async move {
+                    |auth: Auth, Json(req): Json<UpdateUserRequest>| async move {
                         handler.update(auth.user_id, req).await
                     }
                 }),
@@ -85,9 +88,7 @@ where
                 "/api/user",
                 delete({
                     let handler = Arc::clone(&handler);
-                    |auth: Auth| async move {
-                        handler.delete(auth.user_id).await
-                    }
+                    |auth: Auth| async move { handler.delete(auth.user_id).await }
                 }),
             )
     }

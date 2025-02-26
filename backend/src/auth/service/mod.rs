@@ -1,5 +1,5 @@
-mod write;
 mod read;
+mod write;
 
-pub use write::*;
 pub use read::*;
+pub use write::*;

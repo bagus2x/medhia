@@ -1,2 +1,5 @@
 -- Add down migration script here
-drop table if exists conversation
+
+DROP TABLE IF EXISTS "conversation";
+
+DROP TYPE IF EXISTS CONVERSATION_TYPE;
